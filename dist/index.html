@@ -24,7 +24,9 @@
     .shell-wrap{position:absolute;width:min(84vw,980px);height:min(84vw,980px);display:grid;place-items:center;z-index:3;touch-action:pan-y;cursor:grab}
     .shell-wrap:active{cursor:grabbing}
     .shell-glow{position:absolute;width:54%;height:54%;border-radius:50%;background:rgba(229,179,108,.2);filter:blur(80px);pointer-events:none}
-    .shell-canvas{position:absolute;inset:0;width:100%;height:100%;display:block;background:transparent;filter:drop-shadow(0 35px 52px rgba(0,0,0,.38));outline:none}
+    .fallback-shell{position:absolute;z-index:1;width:88%;height:88%;object-fit:contain;display:block;filter:drop-shadow(0 35px 52px rgba(0,0,0,.48));transition:opacity .65s ease;pointer-events:none}
+    .fallback-shell.is-hidden{opacity:0}
+    .shell-canvas{position:absolute;z-index:2;inset:0;width:100%;height:100%;display:block;background:transparent;filter:drop-shadow(0 35px 52px rgba(0,0,0,.38));outline:none}
     .webgl-fallback{display:none;color:#d7b37c;font:italic 20px/1.4 Georgia,serif;text-align:center;max-width:280px}
     .grain{position:absolute;inset:0;opacity:.045;pointer-events:none;z-index:10;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.8'/%3E%3C/svg%3E")}
     .eyebrow{font-size:12px;letter-spacing:.28em;text-transform:uppercase;color:var(--gold);margin:0 0 16px}
@@ -34,6 +36,7 @@
     .intro h1{font-size:clamp(52px,9vw,128px);line-height:.84}
     .intro .sub{font:italic 400 clamp(22px,3vw,38px)/1.2 Georgia,serif;color:#cfc5b8;margin:22px 0 0}
     .chapter{left:clamp(22px,6vw,92px);top:50%;text-align:left;transform:translateY(-45%);max-width:360px}
+    .chapter,.detail{opacity:0}
     .chapter h2{font-size:clamp(42px,5vw,76px);line-height:.95}
     .chapter p{font-size:clamp(16px,1.5vw,20px);line-height:1.55;color:#c2b9ae;margin:22px 0 0}
     .detail{right:clamp(22px,6vw,92px);bottom:12svh;text-align:right;max-width:360px}
@@ -81,7 +84,7 @@
           <h1>Beauty takes<br>many forms.</h1>
           <p class="sub">From nature, into imagination.</p>
         </div>
-        <div class="shell-wrap"><div class="shell-glow" aria-hidden="true"></div><canvas class="shell-canvas" aria-label="Interactive three-dimensional nautilus shell. Scroll or drag to rotate." tabindex="0"></canvas><p class="webgl-fallback">Your browser could not display the interactive 3D specimen.</p></div>
+        <div class="shell-wrap"><div class="shell-glow" aria-hidden="true"></div><img class="fallback-shell" src="assets/nautilus-cutout.png" alt="Pearlescent nautilus shell"><canvas class="shell-canvas" aria-label="Interactive three-dimensional nautilus shell. Scroll or drag to rotate." tabindex="0"></canvas><p class="webgl-fallback">3D view unavailable. Showing the museum specimen image.</p></div>
         <div class="copy chapter" data-scene="form">
           <p class="eyebrow">01 — Beauty of Nature</p>
           <h2>Perfect form,<br>never designed.</h2>
@@ -119,6 +122,7 @@
       const story = document.querySelector('.scroll-story');
       const shellWrap = document.querySelector('.shell-wrap');
       const canvas = document.querySelector('.shell-canvas');
+      const fallbackImage = document.querySelector('.fallback-shell');
       const fallback = document.querySelector('.webgl-fallback');
       const intro = document.querySelector('[data-scene="intro"]');
       const form = document.querySelector('[data-scene="form"]');
@@ -190,6 +194,7 @@
             renderer.setSize(Math.max(1,box.width),Math.max(1,box.height),false);
             camera.aspect=box.width/Math.max(1,box.height); camera.updateProjectionMatrix();
           }
+          let firstFrame = true;
           function frame(){
             targetYaw = -0.48 + progress*6.25 + dragYaw;
             targetPitch = .12 + Math.sin(progress*Math.PI*2)*.28 + dragPitch;
@@ -198,10 +203,12 @@
             model.rotation.z += ((-.28+progress*.52)-model.rotation.z)*.075;
             const size=.74+range(progress,.08,.82)*.33+range(progress,.82,1)*.58;
             model.scale.setScalar(size);
-            renderer.render(scene,camera); requestAnimationFrame(frame);
+            renderer.render(scene,camera);
+            if(firstFrame){firstFrame=false;requestAnimationFrame(()=>fallbackImage.classList.add('is-hidden'))}
+            requestAnimationFrame(frame);
           }
           new ResizeObserver(resize3D).observe(shellWrap); resize3D(); frame();
-        }catch(error){canvas.style.display='none';fallback.style.display='block';}
+        }catch(error){canvas.style.display='none';fallback.style.display='block';fallbackImage.classList.remove('is-hidden')}
       }
 
       canvas.addEventListener('pointerdown',e=>{pointer={id:e.pointerId,x:e.clientX,y:e.clientY};canvas.setPointerCapture(e.pointerId)});
