@@ -6,6 +6,7 @@
   <meta name="theme-color" content="#090806">
   <title>AUREA — Museum of Art & Wonder</title>
   <meta name="description" content="A scroll-controlled exhibition demo for AUREA, where art and natural wonders move with you.">
+  <link rel="preload" as="image" href="assets/nautilus-cutout.png" fetchpriority="high">
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23090806'/%3E%3Cpath d='M45 42c-7 8-25 4-27-8-2-11 9-20 19-15 8 4 9 14 3 19-5 4-13 1-13-5 0-5 6-7 9-4 3 3 0 7-3 6' fill='none' stroke='%23e2c08f' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
   <style>
     :root{--ink:#f3eee6;--muted:#aaa197;--gold:#d7b37c;--bg:#090806;--line:rgba(255,255,255,.15);font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color-scheme:dark}
@@ -27,7 +28,6 @@
     .fallback-shell{position:absolute;z-index:1;width:88%;height:88%;object-fit:contain;display:block;filter:drop-shadow(0 35px 52px rgba(0,0,0,.48));transition:opacity .65s ease;pointer-events:none}
     .fallback-shell.is-hidden{opacity:0}
     .shell-canvas{position:absolute;z-index:2;inset:0;width:100%;height:100%;display:block;background:transparent;filter:drop-shadow(0 35px 52px rgba(0,0,0,.38));outline:none}
-    .webgl-fallback{display:none;color:#d7b37c;font:italic 20px/1.4 Georgia,serif;text-align:center;max-width:280px}
     .grain{position:absolute;inset:0;opacity:.045;pointer-events:none;z-index:10;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.8'/%3E%3C/svg%3E")}
     .eyebrow{font-size:12px;letter-spacing:.28em;text-transform:uppercase;color:var(--gold);margin:0 0 16px}
     .copy{position:absolute;z-index:7;max-width:720px;text-align:center;padding:24px;will-change:transform,opacity}
@@ -84,7 +84,7 @@
           <h1>Beauty takes<br>many forms.</h1>
           <p class="sub">From nature, into imagination.</p>
         </div>
-        <div class="shell-wrap"><div class="shell-glow" aria-hidden="true"></div><img class="fallback-shell" src="assets/nautilus-cutout.png" alt="Pearlescent nautilus shell"><canvas class="shell-canvas" aria-label="Interactive three-dimensional nautilus shell. Scroll or drag to rotate." tabindex="0"></canvas><p class="webgl-fallback">3D view unavailable. Showing the museum specimen image.</p></div>
+        <div class="shell-wrap"><div class="shell-glow" aria-hidden="true"></div><img class="fallback-shell" src="assets/nautilus-cutout.png" alt="Pearlescent nautilus shell" width="1314" height="1197" loading="eager" decoding="sync" fetchpriority="high"><canvas class="shell-canvas" aria-label="Interactive three-dimensional nautilus shell. Scroll or drag to rotate." tabindex="0"></canvas></div>
         <div class="copy chapter" data-scene="form">
           <p class="eyebrow">01 — Beauty of Nature</p>
           <h2>Perfect form,<br>never designed.</h2>
@@ -123,7 +123,6 @@
       const shellWrap = document.querySelector('.shell-wrap');
       const canvas = document.querySelector('.shell-canvas');
       const fallbackImage = document.querySelector('.fallback-shell');
-      const fallback = document.querySelector('.webgl-fallback');
       const intro = document.querySelector('[data-scene="intro"]');
       const form = document.querySelector('[data-scene="form"]');
       const detail = document.querySelector('[data-scene="detail"]');
@@ -208,8 +207,10 @@
             requestAnimationFrame(frame);
           }
           new ResizeObserver(resize3D).observe(shellWrap); resize3D(); frame();
-        }catch(error){canvas.style.display='none';fallback.style.display='block';fallbackImage.classList.remove('is-hidden')}
+        }catch(error){canvas.style.display='none';fallbackImage.classList.remove('is-hidden')}
       }
+
+      canvas.addEventListener('webglcontextlost',()=>fallbackImage.classList.remove('is-hidden'));
 
       canvas.addEventListener('pointerdown',e=>{pointer={id:e.pointerId,x:e.clientX,y:e.clientY};canvas.setPointerCapture(e.pointerId)});
       canvas.addEventListener('pointermove',e=>{
