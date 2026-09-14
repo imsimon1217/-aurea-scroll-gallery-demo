@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#090806">
+  <title>AUREA — Museum of Art & Wonder</title>
+  <meta name="description" content="A scroll-controlled exhibition demo for AUREA, where art and natural wonders move with you.">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23090806'/%3E%3Cpath d='M45 42c-7 8-25 4-27-8-2-11 9-20 19-15 8 4 9 14 3 19-5 4-13 1-13-5 0-5 6-7 9-4 3 3 0 7-3 6' fill='none' stroke='%23e2c08f' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
+  <style>
+    :root{--ink:#f3eee6;--muted:#aaa197;--gold:#d7b37c;--bg:#090806;--line:rgba(255,255,255,.15);font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color-scheme:dark}
+    *{box-sizing:border-box}
+    html{background:var(--bg);scroll-behavior:smooth}
+    body{margin:0;background:var(--bg);color:var(--ink);overflow-x:hidden}
+    button,a{font:inherit}
+    .topbar{position:fixed;z-index:30;inset:0 0 auto 0;height:68px;padding:0 clamp(20px,4vw,64px);display:flex;align-items:center;justify-content:space-between;background:linear-gradient(to bottom,rgba(9,8,6,.78),transparent);mix-blend-mode:normal}
+    .brand{font:600 17px/1 Georgia,serif;letter-spacing:.34em;color:var(--ink);text-decoration:none}
+    .nav-right{display:flex;align-items:center;gap:24px;color:#d5cec4;font-size:14px}
+    .nav-right a{color:inherit;text-decoration:none}
+    .lang{border:1px solid var(--line);border-radius:999px;padding:8px 12px;background:rgba(255,255,255,.04);color:inherit}
+    .scroll-story{height:520vh;position:relative;background:radial-gradient(circle at 50% 42%,#2b1d10 0,#100d09 35%,#090806 69%)}
+    .stage{position:sticky;top:0;height:100svh;overflow:hidden;isolation:isolate;display:grid;place-items:center}
+    .ambient{position:absolute;inset:-20%;background:radial-gradient(circle at var(--lx,45%) var(--ly,40%),rgba(217,170,105,.16),transparent 35%);filter:blur(18px);opacity:.85;pointer-events:none}
+    .shell-wrap{position:absolute;width:min(72vw,820px);aspect-ratio:1;display:grid;place-items:center;transform-style:preserve-3d;will-change:transform,opacity,filter;z-index:3}
+    .shell-glow{position:absolute;width:58%;height:58%;border-radius:50%;background:rgba(229,179,108,.16);filter:blur(70px);transform:translateZ(-40px)}
+    .shell{width:100%;height:100%;object-fit:contain;display:block;filter:drop-shadow(0 38px 55px rgba(0,0,0,.56));backface-visibility:hidden;will-change:transform,filter}
+    .grain{position:absolute;inset:0;opacity:.045;pointer-events:none;z-index:10;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.8'/%3E%3C/svg%3E")}
+    .eyebrow{font-size:12px;letter-spacing:.28em;text-transform:uppercase;color:var(--gold);margin:0 0 16px}
+    .copy{position:absolute;z-index:7;max-width:720px;text-align:center;padding:24px;will-change:transform,opacity}
+    .copy h1,.copy h2{font-family:Georgia,"Times New Roman",serif;font-weight:400;letter-spacing:-.045em;margin:0}
+    .intro{top:15svh}
+    .intro h1{font-size:clamp(52px,9vw,128px);line-height:.84}
+    .intro .sub{font:italic 400 clamp(22px,3vw,38px)/1.2 Georgia,serif;color:#cfc5b8;margin:22px 0 0}
+    .chapter{left:clamp(22px,6vw,92px);top:50%;text-align:left;transform:translateY(-45%);max-width:360px}
+    .chapter h2{font-size:clamp(42px,5vw,76px);line-height:.95}
+    .chapter p{font-size:clamp(16px,1.5vw,20px);line-height:1.55;color:#c2b9ae;margin:22px 0 0}
+    .detail{right:clamp(22px,6vw,92px);bottom:12svh;text-align:right;max-width:360px}
+    .detail h2{font-size:clamp(38px,4.4vw,68px);line-height:.95}
+    .detail p{font-size:17px;line-height:1.55;color:#c2b9ae}
+    .specimen{position:absolute;left:clamp(20px,4vw,60px);bottom:38px;z-index:12;color:#9f978d;font-size:12px;line-height:1.65;letter-spacing:.05em}
+    .progress{position:absolute;right:clamp(18px,3vw,46px);top:50%;z-index:12;display:flex;align-items:center;gap:12px;transform:translateY(-50%) rotate(90deg);transform-origin:center;font-size:11px;letter-spacing:.18em;color:#aaa197}
+    .track{width:92px;height:1px;background:rgba(255,255,255,.2);position:relative;overflow:hidden}
+    .bar{position:absolute;inset:0 auto 0 0;width:0;background:var(--gold)}
+    .hint{position:absolute;bottom:26px;left:50%;z-index:12;transform:translateX(-50%);display:flex;align-items:center;gap:10px;color:#c7beb2;font-size:12px;letter-spacing:.12em;text-transform:uppercase;transition:opacity .3s}
+    .wheel{width:20px;height:32px;border:1px solid rgba(255,255,255,.45);border-radius:12px;position:relative}
+    .wheel::after{content:"";position:absolute;width:2px;height:7px;background:var(--gold);border-radius:2px;left:8px;top:6px;animation:roll 1.7s infinite}
+    @keyframes roll{0%{transform:translateY(0);opacity:0}25%{opacity:1}80%{transform:translateY(12px);opacity:0}100%{opacity:0}}
+    .after{min-height:100svh;background:#eee9e1;color:#15120e;padding:clamp(90px,12vw,180px) clamp(22px,7vw,110px);display:grid;align-content:center}
+    .after .eyebrow{color:#876135}
+    .after h2{font:400 clamp(48px,8vw,112px)/.92 Georgia,serif;letter-spacing:-.055em;max-width:980px;margin:0 0 44px}
+    .collections{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid #bdb6ab}
+    .collection{padding:26px 14px 26px 0;border-bottom:1px solid #bdb6ab;text-decoration:none;color:#15120e;display:flex;justify-content:space-between;align-items:center;font-size:16px}
+    .collection:nth-child(3n+2),.collection:nth-child(3n+3){padding-left:20px;border-left:1px solid #bdb6ab}
+    .collection span:last-child{transition:transform .2s}
+    .collection:hover span:last-child{transform:translateX(6px)}
+    .reduce-note{display:none}
+    @media(max-width:700px){
+      .topbar{height:58px;padding:0 18px}.brand{font-size:15px}.nav-right a{display:none}.lang{padding:6px 10px}
+      .scroll-story{height:470vh}.shell-wrap{width:112vw;max-width:none}.intro{top:13svh}.intro h1{font-size:58px}.intro .sub{font-size:22px}
+      .chapter{left:20px;right:20px;top:auto;bottom:13svh;transform:none;max-width:430px}.chapter h2{font-size:46px}.chapter p{font-size:16px;max-width:330px}
+      .detail{left:20px;right:20px;bottom:12svh;text-align:left;max-width:390px}.detail h2{font-size:43px}.detail p{font-size:16px;max-width:330px}
+      .specimen{left:18px;bottom:18px}.progress{right:-25px}.hint{bottom:24px}.after{padding:100px 20px}.after h2{font-size:53px}
+      .collections{grid-template-columns:1fr}.collection,.collection:nth-child(3n+2),.collection:nth-child(3n+3){padding:20px 0;border-left:0}
+    }
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.wheel::after{animation:none}.reduce-note{display:block}.hint{display:none}}
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#top" aria-label="AUREA home">AUREA</a>
+    <div class="nav-right"><a href="#collections">Collections</a><a href="#collections">Exhibitions</a><button class="lang" type="button" aria-label="Language">EN · 中文</button></div>
+  </header>
+  <main>
+    <section class="scroll-story" id="top" aria-label="Interactive nautilus exhibition">
+      <div class="stage">
+        <div class="ambient" aria-hidden="true"></div>
+        <div class="copy intro" data-scene="intro">
+          <p class="eyebrow">Museum of Art & Wonder</p>
+          <h1>Beauty takes<br>many forms.</h1>
+          <p class="sub">From nature, into imagination.</p>
+        </div>
+        <div class="shell-wrap" aria-hidden="true"><div class="shell-glow"></div><img class="shell" src="assets/nautilus.png" alt=""></div>
+        <div class="copy chapter" data-scene="form">
+          <p class="eyebrow">01 — Beauty of Nature</p>
+          <h2>Perfect form,<br>never designed.</h2>
+          <p>The nautilus grows one chamber at a time. Its spiral is both a shelter and a quiet record of life.</p>
+        </div>
+        <div class="copy detail" data-scene="detail">
+          <p class="eyebrow">Look closer</p>
+          <h2>Light becomes<br>material.</h2>
+          <p>Pearl, rhythm and age reveal themselves as the specimen fills your field of view.</p>
+        </div>
+        <div class="specimen">NAUTILUS STUDY 001<br>INDO–PACIFIC · NATURAL SPECIMEN</div>
+        <div class="progress" aria-hidden="true"><span>EXPLORE</span><div class="track"><div class="bar"></div></div></div>
+        <div class="hint"><span class="wheel"></span><span>Scroll to move</span></div>
+        <div class="grain" aria-hidden="true"></div>
+      </div>
+    </section>
+    <section class="after" id="collections">
+      <p class="eyebrow">The AUREA world</p>
+      <h2>Discover beauty in every form.</h2>
+      <div class="collections" aria-label="AUREA collections">
+        <a class="collection" href="#top"><span>Nature · 自然之美</span><span>↗</span></a>
+        <a class="collection" href="#top"><span>Humanity · 人間之美</span><span>↗</span></a>
+        <a class="collection" href="#top"><span>Inner World · 心靈之美</span><span>↗</span></a>
+        <a class="collection" href="#top"><span>Creation · 創造之美</span><span>↗</span></a>
+        <a class="collection" href="#top"><span>Time · 時光之美</span><span>↗</span></a>
+        <a class="collection" href="#top"><span>Imagination · 想像之美</span><span>↗</span></a>
+      </div>
+      <p class="reduce-note">Motion is reduced according to your device accessibility setting.</p>
+    </section>
+  </main>
+  <script>
+    (() => {
+      const story = document.querySelector('.scroll-story');
+      const shellWrap = document.querySelector('.shell-wrap');
+      const shell = document.querySelector('.shell');
+      const intro = document.querySelector('[data-scene="intro"]');
+      const form = document.querySelector('[data-scene="form"]');
+      const detail = document.querySelector('[data-scene="detail"]');
+      const bar = document.querySelector('.bar');
+      const hint = document.querySelector('.hint');
+      const ambient = document.querySelector('.ambient');
+      const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      let progress = 0, ticking = false;
+      const clamp = (n,a=0,b=1) => Math.min(b,Math.max(a,n));
+      const range = (p,a,b) => clamp((p-a)/(b-a));
+      const fadeWindow = (p,a,b,c,d) => Math.min(range(p,a,b),1-range(p,c,d));
+      function render(){
+        const r = story.getBoundingClientRect();
+        progress = clamp((-r.top)/(story.offsetHeight-innerHeight));
+        const introO = 1-range(progress,.06,.19);
+        const formO = fadeWindow(progress,.20,.30,.55,.66);
+        const detailO = fadeWindow(progress,.63,.73,.91,.99);
+        intro.style.opacity = introO; intro.style.transform = `translateY(${-progress*42}px)`;
+        form.style.opacity = formO; form.style.transform = `translateY(calc(-45% + ${(1-formO)*34}px))`;
+        detail.style.opacity = detailO; detail.style.transform = `translateY(${(1-detailO)*28}px)`;
+        hint.style.opacity = progress < .055 ? 1 : 0;
+        bar.style.width = `${progress*100}%`;
+        if(!reduce){
+          const scale = .48 + range(progress,.05,.82)*1.05 + range(progress,.82,1)*1.4;
+          const rotY = -18 + progress*395;
+          const rotZ = 7-progress*28;
+          const x = progress < .58 ? range(progress,.22,.55)*18 : 18-range(progress,.61,.84)*22;
+          const y = 7-range(progress,.1,.6)*9+range(progress,.82,1)*10;
+          shellWrap.style.transform = `translate3d(${x}vw,${y}vh,0) perspective(1100px) rotateY(${rotY}deg) rotateZ(${rotZ}deg) scale(${scale})`;
+          shell.style.filter = `drop-shadow(0 ${32-18*progress}px ${50-15*progress}px rgba(0,0,0,.58)) saturate(${.88+progress*.24})`;
+          ambient.style.setProperty('--lx', `${42+progress*24}%`);
+          ambient.style.setProperty('--ly', `${38+Math.sin(progress*Math.PI)*12}%`);
+        }
+        ticking=false;
+      }
+      function requestRender(){if(!ticking){requestAnimationFrame(render);ticking=true}}
+      addEventListener('scroll',requestRender,{passive:true});
+      addEventListener('resize',requestRender,{passive:true});
+      addEventListener('keydown',e=>{if(['ArrowDown','PageDown'].includes(e.key))scrollBy({top:innerHeight*.45,behavior:'smooth'});if(['ArrowUp','PageUp'].includes(e.key))scrollBy({top:-innerHeight*.45,behavior:'smooth'})});
+      render();
+    })();
+  </script>
+</body>
+</html>
