@@ -11,14 +11,15 @@ An interactive museum-style website prototype for **AUREA — Museum of Art & Wo
 - Reduced-motion accessibility support
 - Six AUREA beauty collections in English and Traditional Chinese
 
-## Live demo
+## Public website
 
-https://aurea-scroll-gallery.im-simon.chatgpt.site
+https://imsimon1217.github.io/-aurea-scroll-gallery-demo/
 
 ## Structure
 
 - `dist/index.html` — complete interactive website
 - `dist/assets/nautilus.png` — museum-style nautilus visual
-- `.openai/hosting.json` — deployment configuration
+- `.github/workflows/deploy-pages.yml` — automatic GitHub Pages deployment
+- `.openai/hosting.json` — original Sites deployment configuration
 
 This is an early interaction prototype. A production collection can replace the simulated rotation with scanned GLB/glTF 3D specimens.
